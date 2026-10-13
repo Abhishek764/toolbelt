@@ -34,7 +34,11 @@ interface PaletteCtx {
 
 const Ctx = createContext<PaletteCtx | null>(null);
 
-export function CommandPaletteProvider({ children }: { children: React.ReactNode }) {
+export function CommandPaletteProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
@@ -62,7 +66,10 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
   const close = useCallback(() => setIsOpen(false), []);
   // Stable context value: tools re-register commands in an effect, and a new
   // object here would re-render them on every register, looping forever.
-  const ctxValue = useMemo(() => ({ open, close, register }), [open, close, register]);
+  const ctxValue = useMemo(
+    () => ({ open, close, register }),
+    [open, close, register],
+  );
 
   // Global shortcut
   useEffect(() => {
@@ -79,7 +86,12 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
         setIsOpen(false);
       } else if (e.key === "?" && !isOpen) {
         const tag = (e.target as HTMLElement)?.tagName;
-        if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+        if (
+          tag === "INPUT" ||
+          tag === "TEXTAREA" ||
+          (e.target as HTMLElement)?.isContentEditable
+        )
+          return;
         e.preventDefault();
         setIsOpen(true);
       }
@@ -112,7 +124,8 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
         section: "Navigation",
         title: `Go to ${t.title}`,
         hint: t.path,
-        keywords: `${t.slug} ${t.tagline} ${t.features.join(" ")}`.toLowerCase(),
+        keywords:
+          `${t.slug} ${t.tagline} ${t.features.join(" ")}`.toLowerCase(),
         run: () => router.push(t.path),
       })),
     ];
@@ -120,8 +133,14 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
       {
         id: "sys:theme",
         section: "System",
-        title: theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
-        icon: theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />,
+        title:
+          theme === "dark" ? "Switch to light theme" : "Switch to dark theme",
+        icon:
+          theme === "dark" ? (
+            <Sun className="w-4 h-4" />
+          ) : (
+            <Moon className="w-4 h-4" />
+          ),
         keywords: "theme dark light mode toggle",
         run: toggleTheme,
       },
@@ -134,13 +153,28 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
     if (!query.trim()) return allCommands;
     const q = query.toLowerCase();
     return allCommands.filter((c) =>
-      (c.title + " " + (c.hint ?? "") + " " + (c.keywords ?? "") + " " + (c.section ?? ""))
+      (
+        c.title +
+        " " +
+        (c.hint ?? "") +
+        " " +
+        (c.keywords ?? "") +
+        " " +
+        (c.section ?? "")
+      )
         .toLowerCase()
-        .includes(q)
+        .includes(q),
     );
   }, [allCommands, query]);
 
-  useEffect(() => setCursor(0), [query]);
+
+
+  useEffect(() => {
+    if (!isOpen || filtered.length === 0) return;
+
+    const activeOption = document.getElementById(`cmd-opt-${cursor}`);
+    activeOption?.scrollIntoView({ block: "nearest" });
+  }, [cursor, filtered.length, isOpen]);
 
   function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Tab") {
@@ -193,12 +227,18 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
                 aria-expanded="true"
                 aria-controls="cmd-palette-listbox"
                 aria-autocomplete="list"
-                aria-activedescendant={filtered[cursor] ? `cmd-opt-${cursor}` : undefined}
+                aria-activedescendant={
+                  filtered[cursor] ? `cmd-opt-${cursor}` : undefined
+                }
                 aria-label="Search commands"
               />
               <kbd className="kbd hidden sm:inline-block">esc</kbd>
             </div>
-            <div id="cmd-palette-listbox" className="max-h-[360px] overflow-auto py-1" role="listbox">
+            <div
+              id="cmd-palette-listbox"
+              className="max-h-[360px] overflow-auto py-1"
+              role="listbox"
+            >
               {filtered.length === 0 && (
                 <div className="px-4 py-6 text-center text-[13px] text-[var(--fg-muted)]">
                   No matches for &quot;{query}&quot;
@@ -207,7 +247,10 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
               {filtered.map((cmd, i) => (
                 <div key={cmd.id}>
                   {i === 0 || filtered[i - 1].section !== cmd.section ? (
-                    <div className="px-4 pt-2 pb-1 font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--fg-dim)]">
+                    <div
+                      role="presentation"
+                      className="px-4 pt-2 pb-1 font-mono text-[10px] tracking-[0.22em] uppercase text-[var(--fg-dim)]"
+                    >
                       {cmd.section ?? "Actions"}
                     </div>
                   ) : null}
@@ -222,7 +265,9 @@ export function CommandPaletteProvider({ children }: { children: React.ReactNode
                     onMouseEnter={() => setCursor(i)}
                     className={cn(
                       "w-full flex items-center gap-3 px-4 py-2 text-left transition-colors",
-                      i === cursor ? "bg-white/[0.05]" : "hover:bg-white/[0.03]"
+                      i === cursor
+                        ? "bg-white/[0.05]"
+                        : "hover:bg-white/[0.03]",
                     )}
                   >
                     <span className="w-4 flex items-center justify-center text-[var(--fg-muted)]">
@@ -282,7 +327,11 @@ export function useCommandPalette(): PaletteCtx {
   return ctx;
 }
 
-export function useRegisterCommands(scope: string, commands: Command[], deps: unknown[] = []) {
+export function useRegisterCommands(
+  scope: string,
+  commands: Command[],
+  deps: unknown[] = [],
+) {
   const { register } = useCommandPalette();
   useEffect(() => {
     const unreg = register(scope, commands);
