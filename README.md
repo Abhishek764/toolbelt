@@ -69,7 +69,7 @@ A developer's toolbelt: fast, privacy-first browser tools. Everything runs clien
   <tr>
     <td width="50%">
       <a href="https://tools.codercops.com/url-encoder">
-        <img src="https://tools.codercops.com/url-encoder/opengraph-image-190rzf" alt="URL Encoder and Decoder">
+        <img src="./.github/assets/og-url-encoder.png" alt="URL Encoder and Decoder">
       </a>
     </td>
     <td width="50%"></td>
@@ -168,3 +168,4 @@ Found a vulnerability? Please report it privately per [SECURITY.md](./SECURITY.m
 MIT, see [LICENSE](./LICENSE). The bundled Noto Sans font subsets are under the SIL Open Font License 1.1 ([public/fonts/OFL.txt](public/fonts/OFL.txt)).
 
 The tool social cards in [`.github/assets/`](.github/assets) are generated from [`lib/og.tsx`](lib/og.tsx); regenerate them if a tool's name or copy changes.
+
