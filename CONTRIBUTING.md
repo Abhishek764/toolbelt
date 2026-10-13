@@ -96,13 +96,18 @@ npm run lint && npm run test && npm run build
 ## Adding a tool
 
 1. Add a typed entry at the end of the `TOOLS` array in `lib/tools.ts`, filling every field of the `Tool` interface.
-   - Pick `accentVar` from the theme variables in `app/globals.css` (`--cyan`, `--amber`, `--rose`, `--violet`, `--sky`, `--lime`) and set `accentHex` to that variable's dark-theme value.
+   - Pick `accentVar` from the accent variables in `app/globals.css` (`--cyan`, `--amber`, `--violet`, `--sky`, `--lime`, `--green`, `--fuchsia`) and set `accentHex` to that variable's dark-theme value. Take one that no tool uses yet. If they're all taken, reuse the one the fewest tools have. Don't use `--rose`: it's the color of error messages.
    - `heroDim` must be `""` or part of `heroHeading`.
    - Write 3 or 4 FAQs. Keep `metaTitle` under 60 characters and `metaDescription` around 150 to 160.
    - Keep `features` and `ogDescription` to plain Latin text; the social card font has no arrows or symbols.
 2. Create `app/(tools)/<slug>/page.tsx`, a `<Name>Client.tsx` client component, and `opengraph-image.tsx`. Copying `page.tsx` and `opengraph-image.tsx` from `app/(tools)/base64/` and changing the slug is the easiest start.
 3. Put pure logic in `lib/<name>.ts` with tests in `lib/__tests__/<name>.test.ts`. Use relative imports in tests; vitest has no `@/` alias.
 4. Add the tool to the "Which tool?" dropdown in `.github/ISSUE_TEMPLATE/bug_report.yml`.
+5. Update the project listings and share cards:
+   - Add the tool to the gallery and tool list in `README.md`.
+   - Save its 1200 × 630 share image in `.github/assets/og-<slug>.png` and update `.github/assets/og-home.png` when the home share card changes.
+   - Update the home share card description in `lib/og.tsx`.
+   - Include the tool in the description and keywords in `package.json`.
 
 The home page, metadata, JSON-LD, sitemap, manifest and command palette pick the new tool up from the registry automatically. Several people may be adding tools at the same time, so rebase on `develop` before asking for review.
 
