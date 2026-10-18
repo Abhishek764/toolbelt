@@ -44,6 +44,8 @@ Two spam PRs and you won't be assigned more issues this month, and you're out of
 
 Every PR needs a "How I tested this" line: what you ran or clicked through to check it works.
 
+For a bug fix, check that your new test fails without the fix: undo the change in the source, run the tests, then put it back. A test that passes either way doesn't catch anything.
+
 I review most PRs within a few days. Please don't ping repeatedly or DM maintainers about a review. If three days pass with no reply, one follow-up comment on the PR is fine.
 
 ### Goodies
@@ -78,6 +80,8 @@ Before opening a pull request, make sure this passes:
 npm run lint && npm run test && npm run build
 ```
 
+CI also builds the Cloudflare Worker and requests every page from it in local workerd. If that step fails while `npm run build` passes locally, run `npm run preview` and open the page the CI log names; the error shows up in the terminal.
+
 ## How the code is organized
 
 - Pure logic lives in `lib/` (parsing, crypto, PDF, conversions). It has no React and no DOM, so it is easy to test. Put new logic here, not inside components.
@@ -101,7 +105,7 @@ npm run lint && npm run test && npm run build
    - Write 3 or 4 FAQs. Keep `metaTitle` under 60 characters and `metaDescription` around 150 to 160.
    - Keep `features` and `ogDescription` to plain Latin text; the social card font has no arrows or symbols.
 2. Create `app/(tools)/<slug>/page.tsx`, a `<Name>Client.tsx` client component, and `opengraph-image.tsx`. Copying `page.tsx` and `opengraph-image.tsx` from `app/(tools)/base64/` and changing the slug is the easiest start.
-3. Put pure logic in `lib/<name>.ts` with tests in `lib/__tests__/<name>.test.ts`. Use relative imports in tests; vitest has no `@/` alias.
+3. Put pure logic in `lib/<name>.ts` with tests in `lib/__tests__/<name>.test.ts`. Tests can import with `@/` like the app does.
 4. Add the tool to the "Which tool?" dropdown in `.github/ISSUE_TEMPLATE/bug_report.yml`.
 5. Update the project listings and share cards:
    - Add the tool to the gallery and tool list in `README.md`.
@@ -117,7 +121,7 @@ toolbelt follows the standard CODERCOPS flow:
 
 - `develop` is the default and integration branch; `production` is the deployed branch (tools.codercops.com). Never commit directly to either.
 - Start every change on a branch off `develop`: `feat/*`, `fix/*`, `chore/*`, or `docs/*`.
-- Open a PR into `develop` and **squash and merge** it (one squashed commit per feature). Use conventional commit titles (`feat:`, `fix:`, `chore:`, `docs:`). CI (lint, tests, build) must be green.
+- Open a PR into `develop` and **squash and merge** it (one squashed commit per feature). Use conventional commit titles (`feat:`, `fix:`, `chore:`, `docs:`). CI (lint, tests, build, and the page check on the built Worker) must be green.
 - A release is a PR from `develop` into `production`, merged as a **merge commit** (not squash), so production keeps full history. Bump the `package.json` version in that PR, and add a `release:minor` or `release:major` label if it is not a patch.
 - Merging the release PR runs the Release workflow: it tags `vX.Y.Z`, publishes a GitHub Release, smoke-tests production, and fast-forwards `develop` back up to `production`.
 

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import ts from "typescript";
 import {
   format,
   minify,
@@ -113,5 +114,117 @@ describe("toYAML quotes strings YAML would read as other types", () => {
     const out = toYAML(JSON.stringify({ a: input }));
     expect(out.ok).toBe(true);
     if (out.ok) expect(out.value).toBe(`a: ${input}\n`);
+  });
+});
+
+describe("toYAML empty array items", () => {
+  it.each([
+    ["[{}]", "- {}\n"],
+    ["[[]]", "- []\n"],
+    ['{"items":[{},{"a":1}]}', "items:\n  - {}\n  - a: 1\n"],
+    ["[[1,2]]", "-\n  - 1\n  - 2\n"],
+    ['[{"a":{"b":1}}]', "- a:\n    b: 1\n"],
+  ])("converts %s", (input, expected) => {
+    const out = toYAML(input);
+    expect(out.ok && out.value).toBe(expected);
+  });
+});
+
+describe("toTypeScript array items", () => {
+  it("merges array items into one interface with optional keys", () => {
+    const ts = toTypeScript('{"users":[{"id":1},{"id":2,"name":"x"}]}');
+    expect(ts.ok && ts.value).toBe(
+      "export interface User {\n  id: number;\n  name?: string;\n}\n\nexport interface Root {\n  users: User[];\n}",
+    );
+  });
+
+  it("merges nested objects inside array items", () => {
+    const ts = toTypeScript('{"items":[{"a":{"x":1}},{"a":{"y":2}}]}');
+    expect(ts.ok && ts.value).toBe(
+      "export interface A {\n  x?: number;\n  y?: number;\n}\n\nexport interface Item {\n  a: A;\n}\n\nexport interface Root {\n  items: Item[];\n}",
+    );
+  });
+
+  it("merges arrays of objects inside array items", () => {
+    const ts = toTypeScript('{"users":[{"tags":[{"n":1}]},{"tags":[{"m":"x"}]}]}');
+    expect(ts.ok && ts.value).toContain("export interface Tag {\n  n?: number;\n  m?: string;\n}");
+    expect(ts.ok && ts.value).not.toContain("Tag2");
+  });
+
+  it("keeps the element type when some items have an empty array", () => {
+    const last = toTypeScript('{"users":[{"id":1,"tags":["a"]},{"id":2,"tags":[]}]}');
+    expect(last.ok && last.value).toContain("tags: string[];");
+    const first = toTypeScript('{"posts":[{"comments":[]},{"comments":[{"by":"x"}]}]}');
+    expect(first.ok && first.value).toContain("comments: Comment[];");
+  });
+
+  it("turns keys with different types into a union", () => {
+    const tsResult = toTypeScript('[{"id":1},{"id":"x"}]');
+    expect(tsResult.ok && tsResult.value).toContain("id: number | string;");
+  });
+
+  it("prefixes interface names starting with a digit with an underscore", () => {
+    const single = toTypeScript('{"404":{"msg":"x"}}');
+    expect(single.ok).toBe(true);
+    if (single.ok) {
+      expect(single.value).toContain("export interface _404 {\n  msg: string;\n}");
+      expect(single.value).toContain('"404": _404;');
+      const transpile = ts.transpileModule(single.value, { reportDiagnostics: true });
+      expect(transpile.diagnostics ?? []).toHaveLength(0);
+    }
+
+    const multi = toTypeScript(
+      '{"2fa":{"enabled":true},"1":{"name":"a"},"2":{"name":"b"},"2fas":[{"a":1}]}',
+    );
+    expect(multi.ok).toBe(true);
+    if (multi.ok) {
+      expect(multi.value).toContain("export interface _2fa");
+      expect(multi.value).toContain("export interface _1");
+      expect(multi.value).toContain("export interface _2");
+      const transpile = ts.transpileModule(multi.value, { reportDiagnostics: true });
+      expect(transpile.diagnostics ?? []).toHaveLength(0);
+    }
+  });
+
+  it("gives nested objects a free name when the JSON is a top-level array", () => {
+    const single = toTypeScript('[{"root":{"x":1}}]');
+    expect(single.ok).toBe(true);
+    if (single.ok) {
+      expect(single.value).toContain("export type Root = RootItem[];");
+      expect(single.value).toContain("export interface Root2 {\n  x: number;\n}");
+      expect(single.value).toContain("export interface RootItem {\n  root: Root2;\n}");
+      const transpile = ts.transpileModule(single.value, { reportDiagnostics: true });
+      expect(transpile.diagnostics ?? []).toHaveLength(0);
+    }
+
+    const deeper = toTypeScript('[{"a":{"root":{"x":1}}}]');
+    expect(deeper.ok).toBe(true);
+    if (deeper.ok) {
+      expect(deeper.value).toContain("export type Root = RootItem[];");
+      expect(deeper.value).toContain("export interface Root2 {\n  x: number;\n}");
+      expect(deeper.value).toContain("root: Root2;");
+      const transpile = ts.transpileModule(deeper.value, { reportDiagnostics: true });
+      expect(transpile.diagnostics ?? []).toHaveLength(0);
+    }
+
+    const uppercase = toTypeScript('[{"Root":{"x":1}}]');
+    expect(uppercase.ok).toBe(true);
+    if (uppercase.ok) {
+      expect(uppercase.value).toContain("export type Root = RootItem[];");
+      expect(uppercase.value).toContain("export interface Root2 {\n  x: number;\n}");
+      expect(uppercase.value).toContain("Root: Root2;");
+      const transpile = ts.transpileModule(uppercase.value, { reportDiagnostics: true });
+      expect(transpile.diagnostics ?? []).toHaveLength(0);
+    }
+
+    const topLevelObj = toTypeScript('{"root":{"x":1}}');
+    expect(topLevelObj.ok).toBe(true);
+    if (topLevelObj.ok) {
+      expect(topLevelObj.value).toBe(
+        "export interface Root2 {\n  x: number;\n}\n\nexport interface Root {\n  root: Root2;\n}",
+      );
+      const transpile = ts.transpileModule(topLevelObj.value, { reportDiagnostics: true });
+      expect(transpile.diagnostics ?? []).toHaveLength(0);
+    }
   });
 });

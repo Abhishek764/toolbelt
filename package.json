@@ -1,6 +1,6 @@
 {
   "name": "toolbelt",
-  "version": "0.6.2",
+  "version": "0.7.1",
   "private": true,
   
   "description": "A developer's toolbelt: fast, privacy-first browser tools — JSON formatter, JWT decoder, Base64, URL encoder and decoder, invoice generator. By CODERCOPS.",
@@ -45,14 +45,14 @@
   },
   "dependencies": {
     "@cfworker/json-schema": "^4.1.1",
-    "@opennextjs/cloudflare": "^1.20.8",
+    "@opennextjs/cloudflare": "^1.20.12",
     "clsx": "^2.1.1",
     "json5": "^2.2.3",
     "jsonpath-plus": "^10.4.0",
     "jspdf": "^4.2.1",
     "lossless-json": "^4.3.0",
     "lucide-react": "^0.468.0",
-    "next": "^16.3.8",
+    "next": "^16.4.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "tailwind-merge": "^3.7.0"
@@ -62,14 +62,17 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.8",
+    "eslint-config-next": "^16.4.2",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
     "typescript": "^5",
     "vitest": "^4.1.11",
-    "wrangler": "^4.147.0"
+    "wrangler": "^4.149.0"
   },
   "overrides": {
+    "@node-minify/core": {
+      "glob": "^10.5.0"
+    },
     "postcss-selector-parser": "^7.1.6",
     "sharp": "^0.35.5"
   }
