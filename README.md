@@ -80,7 +80,7 @@ A developer's toolbelt: fast, privacy-first browser tools. Everything runs clien
 - **[JWT decoder and inspector](https://tools.codercops.com/jwt-decoder).** Decode header, payload, and claims; verify HS/RS/PS/ES signatures via WebCrypto; security audit; HS256/384/512 encoder.
 - **[Base64 encoder and decoder](https://tools.codercops.com/base64).** Text, images, and files; URL-safe variant; data URIs; magic-byte detection; Base32/58/85 and hashes.
 - **[Invoice generator](https://tools.codercops.com/invoice-generator).** Live preview, vector PDF export with Unicode currency support, a reusable sender profile, all saved locally.
-- **[URL encoder and decoder](https://tools.codercops.com/url-encoder).** Encode and decode URL components or complete URLs, inspect query parameters, and handle plus signs as spaces â€” all in your browser.
+- **[URL encoder and decoder](https://tools.codercops.com/url-encoder).** Encode and decode URL components or complete URLs, inspect query parameters, and handle plus signs as spaces — all in your browser.
 
 
 ## Why it exists
